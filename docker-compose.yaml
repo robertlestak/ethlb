@@ -11,7 +11,7 @@ services:
     labels:
       traefik.enable: "false"
     volumes:
-      - ./config.json:/config.json
+      - $PWD/config.json:/config.json
 
   chainmgrredis:
     image: redis
