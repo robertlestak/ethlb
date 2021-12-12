@@ -28,6 +28,7 @@ networks:
   web:
     external: true
   humun:
+    external: true
 
 volumes:
   redis:
