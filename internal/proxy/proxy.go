@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -36,6 +37,12 @@ var (
 
 type transport struct {
 	http.RoundTripper
+}
+
+type JSONRPCResponse struct {
+	Jsonrpc string      `json:"jsonrpc"`
+	ID      int         `json:"id"`
+	Result  interface{} `json:"result"`
 }
 
 func intInSlice(a int, list []int) bool {
@@ -139,7 +146,18 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	l.Debug("set response body")
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
-	if resp.StatusCode == 200 && os.Getenv("CACHE_DISABLED") != "true" {
+	rpcres := JSONRPCResponse{}
+	err = json.Unmarshal(b, &rpcres)
+	if err != nil {
+		l.WithError(err).Error("failed to unmarshal response")
+		return nil, err
+	}
+	cacheable := false
+	if rpcres.Result != nil && resp.StatusCode == http.StatusOK && os.Getenv("CACHE_DISABLED") != "true" {
+		cacheable = true
+	}
+	l.Debug("cacheable: ", cacheable)
+	if cacheable {
 		l.Debug("set cache")
 		rd, err := httputil.DumpResponse(resp, true)
 		if err != nil {
