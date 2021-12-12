@@ -209,6 +209,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 				l.WithError(err).Error("failed to read response from cache")
 				return nil, err
 			}
+			resp.Header.Set("x-humun-cache", "hit")
 			return resp, nil
 		}
 	}
@@ -234,6 +235,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			break
 		}
 	}
+	resp.Header.Set("x-humun-cache", "miss")
 	l.Debug("return response")
 	l.Debugf("response %+v", resp.StatusCode)
 	return resp, nil
