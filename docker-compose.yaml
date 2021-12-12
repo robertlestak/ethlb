@@ -13,11 +13,10 @@ services:
     volumes:
       - ./config.json:/config.json
 
-  redis:
+  chainmgrredis:
     image: redis
     restart: always
     env_file: .env
-    hostname: chainmgrredis
     networks:
       - humun
     labels:
