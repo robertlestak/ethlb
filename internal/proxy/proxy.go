@@ -168,6 +168,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	var bd []byte
 	var rbd []byte
 	if req.Body != nil {
+		// drop host from cache key
+		req.Header.Set("Host", "")
 		bd, err = httputil.DumpRequest(req, true)
 		if err != nil {
 			l.WithError(err).Error("failed to dump request")
