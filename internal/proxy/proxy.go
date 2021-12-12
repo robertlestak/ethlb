@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
 	"crypto/tls"
@@ -34,12 +35,11 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	chain := vars["chain"]
 	var bd []byte
 	if req.Body != nil {
-		bd, err = ioutil.ReadAll(req.Body)
+		bd, err = httputil.DumpRequest(req, true)
 		if err != nil {
-			l.WithError(err).Error("read body")
+			l.WithError(err).Error("failed to dump request")
 			return nil, err
 		}
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(bd))
 	}
 	rh := fmt.Sprintf("%x", md5.Sum(bd))
 	cacheKey := chain + ":" + rh
@@ -55,9 +55,11 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			l.WithError(derr).Error("decode cache")
 			return nil, derr
 		}
-		resp = &http.Response{
-			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewBuffer(decoded)),
+		r := bufio.NewReader(bytes.NewReader(decoded))
+		resp, err = http.ReadResponse(r, nil)
+		if err != nil {
+			l.WithError(err).Error("read response")
+			return nil, err
 		}
 		return resp, nil
 	}
@@ -85,7 +87,12 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	if resp.StatusCode == 200 {
 		l.Debug("set cache")
 		cacheTTL := time.Minute * 10
-		encoded := base64.StdEncoding.EncodeToString(b)
+		rd, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			l.WithError(err).Error("failed to dump response")
+			return nil, err
+		}
+		encoded := base64.StdEncoding.EncodeToString(rd)
 		cerr = cache.Set(cacheKey, encoded, cacheTTL)
 		if cerr != nil {
 			l.WithError(cerr).Error("failed to set cache")
