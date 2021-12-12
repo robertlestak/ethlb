@@ -39,6 +39,22 @@
             {
                 "endpoint": "https://eth-mainnet.alchemyapi.io/v2/mlZZT3vkZvZwZwl0nzf9V9YbeHdThRAi",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/zsfMbtOUaJ02dKMogLPptOd0PeBUxGp-",
+                "enabled": true
+            },
+            {
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/_C_mdAyGzrLqPDNHM1I8Yfm-uzy2ZLs2",
+                "enabled": true
+            },
+            {
+                "endpoint": "https://mainnet.infura.io/v3/837d02673aa34420b1084ab45b0dc008",
+                "enabled": true
+            },
+            {
+                "endpoint": "https://mainnet.infura.io/v3/9ad4da23153e408ebcaf27e0ef028660",
+                "enabled": true
             }
         ]
     },
@@ -47,6 +63,10 @@
         "endpoints": [
             {
                 "endpoint": "https://eth-ropsten.alchemyapi.io/v2/ZLbfDIABhaAXq_wBk61xRKFAU6jaPL40",
+                "enabled": true
+            },
+            {
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/3Mk4Z14zwPS1uLsFrNGHOsDWlPn0Whd6",
                 "enabled": true
             }
         ]
