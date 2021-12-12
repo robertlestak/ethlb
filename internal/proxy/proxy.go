@@ -145,7 +145,7 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	rpcres := JSONRPCResponse{}
 	err = json.Unmarshal(b, &rpcres)
 	if err != nil {
-		l.WithError(err).Error("failed to unmarshal response")
+		l.WithError(err).Error("failed to unmarshal jsonrpc response")
 	}
 	cacheable := false
 	if resp.StatusCode == http.StatusOK && os.Getenv("CACHE_DISABLED") != "true" && rpcres.Result != nil {
