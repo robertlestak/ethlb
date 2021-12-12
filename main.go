@@ -24,6 +24,9 @@ func init() {
 	if lerr != nil {
 		log.WithError(lerr).Fatal("failed to load config file")
 	}
+	if cerr := proxy.ConfigRetryHandler(); cerr != nil {
+		log.WithError(cerr).Fatal("failed to configure retry handler")
+	}
 	if ierr := cache.Init(); ierr != nil {
 		log.WithError(ierr).Fatal("failed to init cache")
 	}

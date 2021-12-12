@@ -11,6 +11,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/robertlestak/humun-chainmgr/internal/cache"
@@ -19,51 +22,95 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	maxRetries     = 3
+	retryDelay     = time.Second * 5
+	retryableCodes = []int{
+		429,
+		502,
+		503,
+		504,
+	}
+)
+
 type transport struct {
 	http.RoundTripper
 }
 
-func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func intInSlice(a int, list []int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func ConfigRetryHandler() error {
 	l := log.WithFields(log.Fields{
-		"method": req.Method,
-		"url":    req.URL.String(),
+		"package": "proxy",
+		"method":  "ConfigRetryHandler",
 	})
 	l.Info("start")
 	defer l.Info("end")
-	l.Debug("round trip")
-	vars := mux.Vars(req)
-	chain := vars["chain"]
-	var bd []byte
-	if req.Body != nil {
-		bd, err = httputil.DumpRequest(req, true)
+	var err error
+	if os.Getenv("MAX_RETRIES") != "" {
+		maxRetries, err = strconv.Atoi(os.Getenv("MAX_RETRIES"))
 		if err != nil {
-			l.WithError(err).Error("failed to dump request")
-			return nil, err
+			l.WithError(err).Error("failed to parse MAX_RETRIES")
+			return err
 		}
 	}
-	rh := fmt.Sprintf("%x", md5.Sum(bd))
-	cacheKey := chain + ":" + rh
-	cd, cerr := cache.Get(cacheKey)
-	l = l.WithField("cache", cacheKey)
-	if cerr != nil {
-		l.WithError(cerr).Error("get cache")
-	}
-	if cd != "" {
-		l.Info("cache hit")
-		decoded, derr := base64.StdEncoding.DecodeString(cd)
-		if derr != nil {
-			l.WithError(derr).Error("decode cache")
-			return nil, derr
-		}
-		r := bufio.NewReader(bytes.NewReader(decoded))
-		resp, err = http.ReadResponse(r, nil)
+	if os.Getenv("RETRY_DELAY") != "" {
+		retryDelay, err = time.ParseDuration(os.Getenv("RETRY_DELAY"))
 		if err != nil {
-			l.WithError(err).Error("read response")
-			return nil, err
+			l.WithError(err).Error("failed to parse RETRY_DELAY")
+			return err
 		}
-		return resp, nil
 	}
-	l.Info("cache miss")
+	if os.Getenv("RETRYABLE_CODES") != "" {
+		retryableCodes = []int{}
+		for _, code := range strings.Split(os.Getenv("RETRYABLE_CODES"), ",") {
+			c, err := strconv.Atoi(code)
+			if err != nil {
+				l.WithError(err).Error("failed to parse RETRYABLE_CODES")
+				return err
+			}
+			retryableCodes = append(retryableCodes, c)
+		}
+	}
+	return nil
+}
+
+func respFromCache(cd string) (resp *http.Response, err error) {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "respFromCache",
+	})
+	l.Info("start")
+	defer l.Info("end")
+	decoded, derr := base64.StdEncoding.DecodeString(cd)
+	if derr != nil {
+		l.WithError(derr).Error("decode cache")
+		return nil, derr
+	}
+	r := bufio.NewReader(bytes.NewReader(decoded))
+	resp, err = http.ReadResponse(r, nil)
+	if err != nil {
+		l.WithError(err).Error("read response")
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *http.Response, err error) {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "reqRoundTripper",
+	})
+	l.Info("start")
+	defer l.Info("end")
+	var cerr error
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
 		l.WithError(err).Error("failed to round trip")
@@ -96,6 +143,61 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		cerr = cache.Set(cacheKey, encoded, cacheTTL)
 		if cerr != nil {
 			l.WithError(cerr).Error("failed to set cache")
+		}
+	}
+	return resp, nil
+}
+
+func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	l := log.WithFields(log.Fields{
+		"method": req.Method,
+		"url":    req.URL.String(),
+	})
+	l.Info("start")
+	defer l.Info("end")
+	l.Debug("round trip")
+	vars := mux.Vars(req)
+	chain := vars["chain"]
+	var bd []byte
+	if req.Body != nil {
+		bd, err = httputil.DumpRequest(req, true)
+		if err != nil {
+			l.WithError(err).Error("failed to dump request")
+			return nil, err
+		}
+	}
+	rh := fmt.Sprintf("%x", md5.Sum(bd))
+	cacheKey := chain + ":" + rh
+	cd, cerr := cache.Get(cacheKey)
+	l = l.WithField("cache", cacheKey)
+	if cerr != nil {
+		l.WithError(cerr).Error("get cache")
+	}
+	if cd != "" {
+		l.Info("cache hit")
+		resp, err = respFromCache(cd)
+		if err != nil {
+			l.WithError(err).Error("failed to read response from cache")
+			return nil, err
+		}
+		return resp, nil
+	}
+	l.Info("cache miss")
+	var retries int
+	for retries < maxRetries {
+		l = l.WithField("retry", retries)
+		resp, err = t.reqRoundTripper(req, cacheKey)
+		if err != nil {
+			l.WithError(err).Error("failed to round trip")
+			return nil, err
+		}
+		l.Debugf("check response code %d", resp.StatusCode)
+		if intInSlice(resp.StatusCode, retryableCodes) {
+			l.WithField("status", resp.StatusCode).Debug("retryable status code")
+			retries++
+			time.Sleep(retryDelay)
+		} else {
+			break
 		}
 	}
 	return resp, nil
