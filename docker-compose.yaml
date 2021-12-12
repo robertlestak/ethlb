@@ -17,6 +17,7 @@ services:
     image: redis
     restart: always
     env_file: .env
+    hostname: chainmgrredis
     networks:
       - humun
     labels:
