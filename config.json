@@ -14,6 +14,10 @@
             {
                 "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/Z5bVmK_4w-m_OhVuT6-7Joi0YWtJA0BU",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/cGAh4G-PJMmvPbhPN92D34SPv-590R-U",
+                "enabled": true
             }
         ]
     },
