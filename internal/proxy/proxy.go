@@ -138,11 +138,7 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 		return nil, err
 	}
 	l.Debug("get response body")
-	err = resp.Body.Close()
-	if err != nil {
-		l.WithError(err).Error("failed to close response body")
-		return nil, err
-	}
+	defer resp.Body.Close()
 	l.Debug("set response body")
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
