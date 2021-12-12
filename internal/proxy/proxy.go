@@ -31,6 +31,7 @@ var (
 		503,
 		504,
 	}
+	cacheTTL = time.Minute * 10
 )
 
 type transport struct {
@@ -77,6 +78,13 @@ func ConfigRetryHandler() error {
 				return err
 			}
 			retryableCodes = append(retryableCodes, c)
+		}
+	}
+	if os.Getenv("CACHE_TTL") != "" {
+		cacheTTL, err = time.ParseDuration(os.Getenv("CACHE_TTL"))
+		if err != nil {
+			l.WithError(err).Error("failed to parse CACHE_TTL")
+			return err
 		}
 	}
 	return nil
@@ -133,7 +141,6 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	resp.Body = body
 	if resp.StatusCode == 200 && os.Getenv("CACHE_DISABLED") != "true" {
 		l.Debug("set cache")
-		cacheTTL := time.Minute * 10
 		rd, err := httputil.DumpResponse(resp, true)
 		if err != nil {
 			l.WithError(err).Error("failed to dump response")
