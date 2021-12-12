@@ -1,0 +1,38 @@
+[
+    {
+        "name": "polygon-mumbai",
+        "endpoints": [
+            {
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/Z5bVmK_4w-m_OhVuT6-7Joi0YWtJA0BU",
+                "enabled": true
+            }
+        ]
+    },
+    {
+        "name": "polygon",
+        "endpoints": [
+            {
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/Z5bVmK_4w-m_OhVuT6-7Joi0YWtJA0BU",
+                "enabled": true
+            }
+        ]
+    },
+    {
+        "name": "ethereum",
+        "endpoints": [
+            {
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/mlZZT3vkZvZwZwl0nzf9V9YbeHdThRAi",
+                "enabled": true
+            }
+        ]
+    },
+    {
+        "name": "ethereum-ropsten",
+        "endpoints": [
+            {
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/ZLbfDIABhaAXq_wBk61xRKFAU6jaPL40",
+                "enabled": true
+            }
+        ]
+    }
+]

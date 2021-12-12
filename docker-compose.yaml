@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+  chainmgr:
+    image: chainmgr
+    build: .
+    restart: always
+    networks:
+      - humun
+    env_file: .env
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - ./config.json:/config.json
+
+  redis:
+    image: redis
+    restart: always
+    env_file: .env
+    networks:
+      - humun
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - redis:/data
+
+networks:
+  web:
+    external: true
+  humun:
+
+volumes:
+  redis:
