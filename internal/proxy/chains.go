@@ -63,14 +63,20 @@ func LoadConfigFile(filename string) error {
 func HotLoadConfigFile(filename string) error {
 	l := log.WithFields(log.Fields{"filename": filename, "action": "HotLoadConfigFile"})
 	l.Info("hot loading config file")
-	for {
-		if err := LoadConfigFile(filename); err != nil {
-			l.WithError(err).Error("failed to hot load config file")
-			return err
-		}
-		l.Info("hot loaded config file")
-		time.Sleep(time.Second * 60)
+	if err := LoadConfigFile(filename); err != nil {
+		l.WithError(err).Error("failed to hot load config file")
+		return err
 	}
+	go func() {
+		for {
+			if err := LoadConfigFile(filename); err != nil {
+				l.WithError(err).Fatal("failed to hot load config file")
+			}
+			l.Info("hot loaded config file")
+			time.Sleep(time.Second * 60)
+		}
+	}()
+	return nil
 }
 
 func (c *chain) EnabledEndpoints() []ChainEndpoint {
