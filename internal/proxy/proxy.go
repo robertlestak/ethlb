@@ -37,15 +37,6 @@ type transport struct {
 	http.RoundTripper
 }
 
-type JSONRPCResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Error   struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"error"`
-}
-
 func intInSlice(a int, list []int) bool {
 	for _, b := range list {
 		if b == a {
@@ -168,10 +159,16 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	vars := mux.Vars(req)
 	chain := vars["chain"]
 	var bd []byte
+	var rbd []byte
 	if req.Body != nil {
 		bd, err = httputil.DumpRequest(req, true)
 		if err != nil {
 			l.WithError(err).Error("failed to dump request")
+			return nil, err
+		}
+		rbd, err = ioutil.ReadAll(req.Body)
+		if err != nil {
+			l.WithError(err).Error("failed to read request body")
 			return nil, err
 		}
 	}
@@ -197,6 +194,9 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	var retries int
 	for retries < maxRetries {
 		l = l.WithField("retry", retries)
+		l.Debugf("round trip %+v", req)
+		l.Debugf("body dump %+s", rbd)
+		req.Body = ioutil.NopCloser(bytes.NewReader(rbd))
 		resp, err = t.reqRoundTripper(req, cacheKey)
 		if err != nil {
 			l.WithError(err).Error("failed to round trip")
@@ -208,9 +208,12 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			retries++
 			time.Sleep(retryDelay)
 		} else {
+			l.WithField("status", resp.StatusCode).Debug("non-retryable status code")
 			break
 		}
 	}
+	l.Debug("return response")
+	l.Debugf("response %+v", resp.StatusCode)
 	return resp, nil
 }
 
