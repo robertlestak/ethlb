@@ -143,6 +143,7 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
 	rpcres := JSONRPCResponse{}
+	l.Debugf("parse response body: %s", string(b))
 	if len(b) > 0 {
 		err = json.Unmarshal(b, &rpcres)
 		if err != nil {
