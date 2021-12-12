@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -137,16 +136,6 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	if err != nil {
 		l.WithError(err).Error("failed to close response body")
 		return nil, err
-	}
-	jrpc := JSONRPCResponse{}
-	err = json.Unmarshal(b, &jrpc)
-	if err != nil {
-		l.WithError(err).Error("failed to unmarshal response")
-		return nil, err
-	}
-	if jrpc.Error.Code != 0 {
-		l.WithField("code", jrpc.Error.Code).Error("failed to get response")
-		resp.StatusCode = jrpc.Error.Code
 	}
 	l.Debug("set response body")
 	body := ioutil.NopCloser(bytes.NewReader(b))
