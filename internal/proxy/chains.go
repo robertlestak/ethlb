@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	Chains []Chain
+	Chains []*chain
 )
 
 type ChainEndpoint struct {
@@ -18,16 +18,21 @@ type ChainEndpoint struct {
 	Enabled  bool   `json:"enabled"`
 }
 
-type Chain struct {
+type chain struct {
 	Name      string          `json:"name"`
 	Endpoints []ChainEndpoint `json:"endpoints"`
 	next      uint32
 }
 
+type Chain interface {
+	EnabledEndpoints() []ChainEndpoint
+	NextEndpoint() (string, error)
+}
+
 func UnmarshalJSON(data []byte) error {
 	l := log.WithFields(log.Fields{"action": "UnmarshalJSON"})
 	l.Info("unmarshalling config")
-	var chains []Chain
+	var chains []*chain
 	if err := json.Unmarshal(data, &chains); err != nil {
 		return err
 	}
@@ -54,7 +59,7 @@ func LoadConfigFile(filename string) error {
 	return UnmarshalJSON(data)
 }
 
-func (c *Chain) EnabledEndpoints() []ChainEndpoint {
+func (c *chain) EnabledEndpoints() []ChainEndpoint {
 	l := log.WithFields(log.Fields{
 		"chain":  c.Name,
 		"action": "EnabledEndpoints",
@@ -70,14 +75,26 @@ func (c *Chain) EnabledEndpoints() []ChainEndpoint {
 	return enabled
 }
 
-func (c *Chain) NextEndpoint() (string, error) {
+func (c *chain) NextEndpoint() (string, error) {
+	l := log.WithFields(log.Fields{
+		"chain":  c.Name,
+		"action": "NextEndpoint",
+	})
+	l.Info("getting next endpoint")
 	var es string
 	if len(c.Endpoints) == 0 {
+		l.Error("no endpoints")
 		return es, errors.New("no endpoints")
 	}
 	enabled := c.EnabledEndpoints()
 	n := atomic.AddUint32(&c.next, 1)
-	return enabled[(int(n)-1)%len(enabled)].Endpoint, nil
+	ne := enabled[(int(n)-1)%len(enabled)].Endpoint
+	l.WithFields(log.Fields{
+		"next":     n,
+		"len":      len(enabled),
+		"endpoint": ne,
+	}).Info("next endpoint")
+	return ne, nil
 }
 
 func GetEndpoint(chainName string) (string, error) {
@@ -88,7 +105,12 @@ func GetEndpoint(chainName string) (string, error) {
 	l.Info("getting endpoint")
 	for _, c := range Chains {
 		if c.Name == chainName {
-			return c.NextEndpoint()
+			ne, nerr := c.NextEndpoint()
+			if nerr != nil {
+				l.WithError(nerr).Error("failed to get next endpoint")
+				return "", nerr
+			}
+			return ne, nil
 		}
 	}
 	l.Error("failed to get endpoint")
