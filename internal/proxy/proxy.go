@@ -132,16 +132,29 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 		return nil, err
 	}
 	l.Debug("read response")
+	if log.GetLevel() >= log.DebugLevel {
+		reqd, err := httputil.DumpRequest(req, true)
+		if err != nil {
+			l.WithError(err).Error("dump request")
+			return nil, err
+		}
+		l.Debugf("dump request: %s", string(reqd))
+		respd, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			l.WithError(err).Error("failed to dump response")
+			return nil, err
+		}
+		l.Debugf("dump response: %s", string(respd))
+	}
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l.WithError(err).Error("failed to read response")
 		return nil, err
 	}
 	l.Debug("get response body")
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
+	resp.Body = ioutil.NopCloser(bytes.NewReader(b))
 	l.Debug("set response body")
-	body := ioutil.NopCloser(bytes.NewReader(b))
-	resp.Body = body
 	rpcres := JSONRPCResponse{}
 	l.Debugf("parse response body: %s", string(b))
 	if len(b) > 0 {
