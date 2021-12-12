@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -35,6 +36,15 @@ var (
 
 type transport struct {
 	http.RoundTripper
+}
+
+type JSONRPCResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Error   struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 func intInSlice(a int, list []int) bool {
@@ -128,10 +138,20 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 		l.WithError(err).Error("failed to close response body")
 		return nil, err
 	}
+	jrpc := JSONRPCResponse{}
+	err = json.Unmarshal(b, &jrpc)
+	if err != nil {
+		l.WithError(err).Error("failed to unmarshal response")
+		return nil, err
+	}
+	if jrpc.Error.Code != 0 {
+		l.WithField("code", jrpc.Error.Code).Error("failed to get response")
+		resp.StatusCode = jrpc.Error.Code
+	}
 	l.Debug("set response body")
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
-	if resp.StatusCode == 200 {
+	if resp.StatusCode == 200 && os.Getenv("CACHE_DISABLED") != "true" {
 		l.Debug("set cache")
 		cacheTTL := time.Minute * 10
 		rd, err := httputil.DumpResponse(resp, true)
@@ -168,19 +188,21 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	}
 	rh := fmt.Sprintf("%x", md5.Sum(bd))
 	cacheKey := chain + ":" + rh
-	cd, cerr := cache.Get(cacheKey)
-	l = l.WithField("cache", cacheKey)
-	if cerr != nil {
-		l.WithError(cerr).Error("get cache")
-	}
-	if cd != "" {
-		l.Info("cache hit")
-		resp, err = respFromCache(cd)
-		if err != nil {
-			l.WithError(err).Error("failed to read response from cache")
-			return nil, err
+	if os.Getenv("CACHE_DISABLED") != "true" {
+		cd, cerr := cache.Get(cacheKey)
+		l = l.WithField("cache", cacheKey)
+		if cerr != nil {
+			l.WithError(cerr).Error("get cache")
 		}
-		return resp, nil
+		if cd != "" {
+			l.Info("cache hit")
+			resp, err = respFromCache(cd)
+			if err != nil {
+				l.WithError(err).Error("failed to read response from cache")
+				return nil, err
+			}
+			return resp, nil
+		}
 	}
 	l.Info("cache miss")
 	var retries int
