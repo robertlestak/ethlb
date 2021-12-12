@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -141,16 +142,13 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	l.Debug("set response body")
 	body := ioutil.NopCloser(bytes.NewReader(b))
 	resp.Body = body
-	/*
-		rpcres := JSONRPCResponse{}
-		err = json.Unmarshal(b, &rpcres)
-		if err != nil {
-			l.WithError(err).Error("failed to unmarshal response")
-			return nil, err
-		}
-	*/
+	rpcres := JSONRPCResponse{}
+	err = json.Unmarshal(b, &rpcres)
+	if err != nil {
+		l.WithError(err).Error("failed to unmarshal response")
+	}
 	cacheable := false
-	if resp.StatusCode == http.StatusOK && os.Getenv("CACHE_DISABLED") != "true" {
+	if resp.StatusCode == http.StatusOK && os.Getenv("CACHE_DISABLED") != "true" && rpcres.Result != nil {
 		cacheable = true
 	}
 	l.Debug("cacheable: ", cacheable)
