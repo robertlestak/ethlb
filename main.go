@@ -20,7 +20,7 @@ func init() {
 		}
 	}
 	log.SetLevel(ll)
-	lerr := proxy.LoadConfigFile(os.Getenv("CONFIG_FILE"))
+	lerr := proxy.HotLoadConfigFile(os.Getenv("CONFIG_FILE"))
 	if lerr != nil {
 		log.WithError(lerr).Fatal("failed to load config file")
 	}

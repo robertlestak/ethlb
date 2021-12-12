@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"sync/atomic"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -57,6 +58,19 @@ func LoadConfigFile(filename string) error {
 		return err
 	}
 	return UnmarshalJSON(data)
+}
+
+func HotLoadConfigFile(filename string) error {
+	l := log.WithFields(log.Fields{"filename": filename, "action": "HotLoadConfigFile"})
+	l.Info("hot loading config file")
+	for {
+		if err := LoadConfigFile(filename); err != nil {
+			l.WithError(err).Error("failed to hot load config file")
+			return err
+		}
+		l.Info("hot loaded config file")
+		time.Sleep(time.Second * 60)
+	}
 }
 
 func (c *chain) EnabledEndpoints() []ChainEndpoint {
