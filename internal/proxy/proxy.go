@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -49,9 +50,14 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	}
 	if cd != "" {
 		l.Info("cache hit")
+		decoded, derr := base64.StdEncoding.DecodeString(cd)
+		if derr != nil {
+			l.WithError(derr).Error("decode cache")
+			return nil, derr
+		}
 		resp = &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewBufferString(cd)),
+			Body:       ioutil.NopCloser(bytes.NewBuffer(decoded)),
 		}
 		return resp, nil
 	}
@@ -79,7 +85,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	if resp.StatusCode == 200 {
 		l.Debug("set cache")
 		cacheTTL := time.Minute * 10
-		cerr = cache.Set(cacheKey, string(b), cacheTTL)
+		encoded := base64.StdEncoding.EncodeToString(b)
+		cerr = cache.Set(cacheKey, encoded, cacheTTL)
 		if cerr != nil {
 			l.WithError(cerr).Error("failed to set cache")
 		}
