@@ -3,11 +3,13 @@ package proxy
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -118,6 +120,31 @@ func respFromCache(cd string) (resp *http.Response, err error) {
 	return resp, nil
 }
 
+func debugReqResp(req *http.Request, resp *http.Response) error {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "debugReqResp",
+	})
+	l.Info("start")
+	defer l.Info("end")
+	var err error
+	var reqDump []byte
+	var respDump []byte
+	reqDump, err = httputil.DumpRequest(req, true)
+	if err != nil {
+		l.WithError(err).Error("dump request")
+		return err
+	}
+	l.WithField("request", string(reqDump)).Info("request")
+	respDump, err = httputil.DumpResponse(resp, true)
+	if err != nil {
+		l.WithError(err).Error("dump response")
+		return err
+	}
+	l.WithField("response", string(respDump)).Info("response")
+	return nil
+}
+
 func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *http.Response, err error) {
 	l := log.WithFields(log.Fields{
 		"package": "proxy",
@@ -133,32 +160,41 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	}
 	l.Debug("read response")
 	if log.GetLevel() >= log.DebugLevel {
-		reqd, err := httputil.DumpRequest(req, true)
-		if err != nil {
-			l.WithError(err).Error("dump request")
-			return nil, err
+		if derr := debugReqResp(req, resp); derr != nil {
+			l.WithError(derr).Error("debug request response")
 		}
-		l.Debugf("dump request: %s", string(reqd))
-		respd, err := httputil.DumpResponse(resp, true)
-		if err != nil {
-			l.WithError(err).Error("failed to dump response")
-			return nil, err
-		}
-		l.Debugf("dump response: %s", string(respd))
 	}
+	var reader io.ReadCloser
+	var origResponseData []byte
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		l.WithError(err).Error("failed to read response")
 		return nil, err
 	}
+	origResponseData = b
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(bytes.NewReader(b))
+		if err != nil {
+			l.WithError(err).Error("failed to create gzip reader")
+			return nil, err
+		}
+		defer reader.Close()
+	default:
+		reader = ioutil.NopCloser(bytes.NewReader(b))
+	}
 	l.Debug("get response body")
-	//defer resp.Body.Close()
-	resp.Body = ioutil.NopCloser(bytes.NewReader(b))
+	resp.Body = ioutil.NopCloser(bytes.NewReader(origResponseData))
+	pd, perr := ioutil.ReadAll(reader)
+	if perr != nil {
+		l.WithError(perr).Error("failed to read response body")
+		return nil, perr
+	}
 	l.Debug("set response body")
 	rpcres := JSONRPCResponse{}
-	l.Debugf("parse response body: %s", string(b))
-	if len(b) > 0 {
-		err = json.Unmarshal(b, &rpcres)
+	l.Debugf("parse response body: %s", string(pd))
+	if len(pd) > 0 {
+		err = json.Unmarshal(pd, &rpcres)
 		if err != nil {
 			l.WithError(err).Error("failed to unmarshal jsonrpc response")
 		}
