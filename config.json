@@ -3,7 +3,7 @@
         "name": "polygon-mumbai",
         "endpoints": [
             {
-                "endpoint": "https://polygon-mumbai.g.alchemy.com/v2/jKWyUOc59Nm7ZCJGtE_q98q1ic7b-TC5",
+                "endpoint": "https://polygon-mumbai.g.alchemy.com/v2/aDsF120wISoBiDb866dabhpUGOvBUevf",
                 "enabled": true
             }
         ]
@@ -12,11 +12,11 @@
         "name": "polygon",
         "endpoints": [
             {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/Z5bVmK_4w-m_OhVuT6-7Joi0YWtJA0BU",
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/u2d5JcPAniTliYpp-nZ2_IPGaSCDMj5j",
                 "enabled": true
             },
             {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/cGAh4G-PJMmvPbhPN92D34SPv-590R-U",
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/KYGtEtY60QDsyXmaPeiNjk_nrWdyD0Hi",
                 "enabled": true
             },
             {
@@ -33,7 +33,7 @@
         "name": "ethereum",
         "endpoints": [
             {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/mlZZT3vkZvZwZwl0nzf9V9YbeHdThRAi",
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/NtUynydyfUMhdD7GlzcSCo_4uSyGaS3k",
                 "enabled": true
             },
             {
@@ -50,7 +50,7 @@
         "name": "ethereum-ropsten",
         "endpoints": [
             {
-                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/ZLbfDIABhaAXq_wBk61xRKFAU6jaPL40",
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/MyKW1cMm2h4wiKFESr7K-jDXieHdMfMg",
                 "enabled": true
             },
             {
