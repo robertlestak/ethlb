@@ -24,11 +24,11 @@
                 "enabled": true
             },
             {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/OrhglJUIfU122TXq41kAyoUFddx5xE6E",
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/tvygb5Z2v5ucScOJ_4l7AvxxQ1OHZ697",
                 "enabled": true
             },
             {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/AVXyPc_AbPYKupj-a-STq_VWo5gtN8O4",
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/RICiIQx7MAtstFfyfjjWewbE8GRyKuKm",
                 "enabled": true
             }
         ]
@@ -41,11 +41,11 @@
                 "enabled": true
             },
             {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/zsfMbtOUaJ02dKMogLPptOd0PeBUxGp-",
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/-Tx8W7uDRi_DU3tgvI0vK1HtdFpT5zy0",
                 "enabled": true
             },
             {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/_C_mdAyGzrLqPDNHM1I8Yfm-uzy2ZLs2",
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/nl_j-o5906bilK0_cWSXf1sgAzNbK_vb",
                 "enabled": true
             }
         ]
@@ -58,7 +58,7 @@
                 "enabled": true
             },
             {
-                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/3Mk4Z14zwPS1uLsFrNGHOsDWlPn0Whd6",
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/jkmUMfbVoMRbNKQs8yjS2st-WlC1GTJC",
                 "enabled": true
             }
         ]
