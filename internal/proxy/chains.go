@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"os"
 	"sync/atomic"
 	"time"
 
@@ -15,18 +16,19 @@ var (
 )
 
 type ChainEndpoint struct {
-	Endpoint string `json:"endpoint"`
-	Enabled  bool   `json:"enabled"`
+	Endpoint      string    `json:"endpoint"`
+	Enabled       bool      `json:"enabled"`
+	CooldownUntil time.Time `json:"cooldownUntil"`
 }
 
 type chain struct {
-	Name      string          `json:"name"`
-	Endpoints []ChainEndpoint `json:"endpoints"`
+	Name      string           `json:"name"`
+	Endpoints []*ChainEndpoint `json:"endpoints"`
 	next      uint32
 }
 
 type Chain interface {
-	EnabledEndpoints() []ChainEndpoint
+	EnabledEndpoints() []*ChainEndpoint
 	NextEndpoint() (string, error)
 }
 
@@ -36,6 +38,18 @@ func UnmarshalJSON(data []byte) error {
 	var chains []*chain
 	if err := json.Unmarshal(data, &chains); err != nil {
 		return err
+	}
+	for _, c := range Chains {
+		for _, ce := range c.Endpoints {
+			for _, ch := range chains {
+				for _, ce2 := range ch.Endpoints {
+					if ce.Endpoint == ce2.Endpoint {
+						ce2.Enabled = ce.Enabled
+						ce2.CooldownUntil = ce.CooldownUntil
+					}
+				}
+			}
+		}
 	}
 	Chains = chains
 	l.WithField("chains", len(Chains)).Info("unmarshalled config")
@@ -79,20 +93,57 @@ func HotLoadConfigFile(filename string) error {
 	return nil
 }
 
-func (c *chain) EnabledEndpoints() []ChainEndpoint {
+func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	l := log.WithFields(log.Fields{
 		"chain":  c.Name,
 		"action": "EnabledEndpoints",
 	})
 	l.Info("getting enabled endpoints")
-	var enabled []ChainEndpoint
+	var enabled []*ChainEndpoint
 	for _, e := range c.Endpoints {
+		if !e.Enabled && time.Now().After(e.CooldownUntil) {
+			e.Enabled = true
+			e.CooldownUntil = time.Time{}
+		}
 		if e.Enabled {
 			enabled = append(enabled, e)
 		}
 	}
 	l.WithField("enabled", len(enabled)).Info("enabled endpoints")
 	return enabled
+}
+
+func CooldownEndpoint(chain string, e string) error {
+	l := log.WithFields(log.Fields{
+		"chain":    chain,
+		"action":   "CooldownEndpoint",
+		"endpoint": e,
+	})
+	l.Info("cooldown endpoint")
+	cdur := time.Minute * 1
+	var err error
+	if os.Getenv("COOLDOWN_DURATION") != "" {
+		cdur, err = time.ParseDuration(os.Getenv("COOLDOWN_DURATION"))
+		if err != nil {
+			l.WithError(err).Error("failed to parse cooldown duration")
+			return err
+		}
+	}
+	for _, c := range Chains {
+		if c.Name == chain {
+			for _, ce := range c.Endpoints {
+				// only cool down if there are other enabled endpoints
+				if ce.Endpoint == e && len(c.EnabledEndpoints()) > 1 {
+					ce.Enabled = false
+					ce.CooldownUntil = time.Now().Add(cdur)
+					l.Info("cooldown endpoint")
+					return nil
+				}
+			}
+		}
+	}
+	l.Error("failed to cooldown endpoint")
+	return errors.New("no such endpoint")
 }
 
 func (c *chain) NextEndpoint() (string, error) {
@@ -107,6 +158,10 @@ func (c *chain) NextEndpoint() (string, error) {
 		return es, errors.New("no endpoints")
 	}
 	enabled := c.EnabledEndpoints()
+	if len(enabled) == 0 {
+		l.Error("no enabled endpoints")
+		return es, errors.New("no enabled endpoints")
+	}
 	n := atomic.AddUint32(&c.next, 1)
 	ne := enabled[(int(n)-1)%len(enabled)].Endpoint
 	l.WithFields(log.Fields{

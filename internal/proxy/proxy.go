@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -275,17 +276,35 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		resp, err = t.reqRoundTripper(req, cacheKey)
 		if err != nil {
 			l.WithError(err).Error("failed to round trip")
-			return nil, err
+			retries++
+			time.Sleep(retryDelay)
+			continue
 		}
 		l.Debugf("check response code %d", resp.StatusCode)
 		if intInSlice(resp.StatusCode, retryableCodes) {
 			l.WithField("status", resp.StatusCode).Debug("retryable status code")
 			retries++
 			time.Sleep(retryDelay)
+			continue
 		} else {
 			l.WithField("status", resp.StatusCode).Debug("non-retryable status code")
 			break
 		}
+	}
+	if retries >= maxRetries {
+		l.Error("max retries reached")
+		if cerr := CooldownEndpoint(chain, req.URL.String()); cerr != nil {
+			l.WithError(cerr).Error("failed to cooldown endpoint")
+		}
+		var retErr error
+		if err != nil {
+			retErr = err
+		} else if resp.Body != nil {
+			return resp, retErr
+		} else {
+			retErr = errors.New("connection error. please try again")
+		}
+		return nil, retErr
 	}
 	resp.Header.Set("x-humun-cache", "miss")
 	l.Debug("return response")
