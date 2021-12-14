@@ -33,15 +33,7 @@
         "name": "ethereum",
         "endpoints": [
             {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/NtUynydyfUMhdD7GlzcSCo_4uSyGaS3k",
-                "enabled": true
-            },
-            {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/-Tx8W7uDRi_DU3tgvI0vK1HtdFpT5zy0",
-                "enabled": true
-            },
-            {
-                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/nl_j-o5906bilK0_cWSXf1sgAzNbK_vb",
+                "endpoint": "http://172.31.19.151:8545",
                 "enabled": true
             }
         ]
