@@ -3,8 +3,13 @@
         "name": "polygon-mumbai",
         "endpoints": [
             {
-                "endpoint": "https://polygon-mumbai.g.alchemy.com/v2/aDsF120wISoBiDb866dabhpUGOvBUevf",
+                "endpoint": "http://172.31.19.151:8149",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://polygon-mumbai.g.alchemy.com/v2/aDsF120wISoBiDb866dabhpUGOvBUevf",
+                "enabled": false,
+                "failover": true
             }
         ]
     },
@@ -12,20 +17,18 @@
         "name": "polygon",
         "endpoints": [
             {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/u2d5JcPAniTliYpp-nZ2_IPGaSCDMj5j",
+                "endpoint": "http://172.31.19.151:8145",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/u2d5JcPAniTliYpp-nZ2_IPGaSCDMj5j",
+                "enabled": false,
+                "failover": true
             },
             {
                 "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/KYGtEtY60QDsyXmaPeiNjk_nrWdyD0Hi",
-                "enabled": true
-            },
-            {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/tvygb5Z2v5ucScOJ_4l7AvxxQ1OHZ697",
-                "enabled": true
-            },
-            {
-                "endpoint": "https://polygon-mainnet.g.alchemy.com/v2/RICiIQx7MAtstFfyfjjWewbE8GRyKuKm",
-                "enabled": true
+                "enabled": false,
+                "failover": true
             }
         ]
     },
@@ -35,6 +38,16 @@
             {
                 "endpoint": "http://172.31.19.151:8545",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/NtUynydyfUMhdD7GlzcSCo_4uSyGaS3k",
+                "enabled": false,
+                "failover": true
+            },
+            {
+                "endpoint": "https://eth-mainnet.alchemyapi.io/v2/-Tx8W7uDRi_DU3tgvI0vK1HtdFpT5zy0",
+                "enabled": false,
+                "failover": true
             }
         ]
     },
@@ -44,6 +57,16 @@
             {
                 "endpoint": "http://172.31.19.151:8546",
                 "enabled": true
+            },
+            {
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/MyKW1cMm2h4wiKFESr7K-jDXieHdMfMg",
+                "enabled": false,
+                "failover": true
+            },
+            {
+                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/jkmUMfbVoMRbNKQs8yjS2st-WlC1GTJC",
+                "enabled": false,
+                "failover": true
             }
         ]
     }

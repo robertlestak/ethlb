@@ -18,6 +18,7 @@ var (
 type ChainEndpoint struct {
 	Endpoint      string    `json:"endpoint"`
 	Enabled       bool      `json:"enabled"`
+	Failover      bool      `json:"failover"`
 	CooldownUntil time.Time `json:"cooldownUntil"`
 }
 
@@ -100,6 +101,7 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	})
 	l.Info("getting enabled endpoints")
 	var enabled []*ChainEndpoint
+	var failover []*ChainEndpoint
 	for _, e := range c.Endpoints {
 		if !e.Enabled && time.Now().After(e.CooldownUntil) {
 			e.Enabled = true
@@ -108,6 +110,13 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 		if e.Enabled {
 			enabled = append(enabled, e)
 		}
+		if e.Failover {
+			failover = append(failover, e)
+		}
+	}
+	if len(enabled) == 0 && len(failover) > 0 {
+		l.WithField("failover", len(failover)).Info("using failover endpoints")
+		return failover
 	}
 	l.WithField("enabled", len(enabled)).Info("enabled endpoints")
 	return enabled
