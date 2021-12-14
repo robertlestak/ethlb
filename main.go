@@ -42,6 +42,7 @@ func main() {
 	l.Info("start")
 	r := mux.NewRouter()
 	r.HandleFunc("/{chain}", proxy.Handler)
+	r.HandleFunc("/{chain}/read", proxy.Handler)
 	r.Use(metrics.MeasureResponseDuration)
 	port := "8080"
 	if os.Getenv("PORT") != "" {

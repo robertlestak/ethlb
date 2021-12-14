@@ -24,6 +24,7 @@ type ChainEndpoint struct {
 	Endpoint      string            `json:"endpoint"`
 	Enabled       bool              `json:"enabled"`
 	Failover      bool              `json:"failover"`
+	ReadOnly      bool              `json:"readOnly"`
 	CooldownUntil time.Time         `json:"cooldownUntil"`
 	BlockHead     uint64            `json:"blockHead"`
 	Client        *ethclient.Client `json:"-"`
@@ -219,10 +220,11 @@ func CooldownEndpoint(chain string, e string) error {
 	return errors.New("no such endpoint")
 }
 
-func (c *chain) NextEndpoint() (string, error) {
+func (c *chain) NextEndpoint(readOnly bool) (string, error) {
 	l := log.WithFields(log.Fields{
-		"chain":  c.Name,
-		"action": "NextEndpoint",
+		"chain":    c.Name,
+		"action":   "NextEndpoint",
+		"readOnly": readOnly,
 	})
 	l.Info("getting next endpoint")
 	var es string
@@ -235,6 +237,19 @@ func (c *chain) NextEndpoint() (string, error) {
 		l.Error("no enabled endpoints")
 		return es, errors.New("no enabled endpoints")
 	}
+	if readOnly {
+		ts := enabled
+		enabled = make([]*ChainEndpoint, 0)
+		for _, e := range ts {
+			if e.ReadOnly {
+				enabled = append(enabled, e)
+			}
+		}
+		if len(enabled) == 0 {
+			l.Infof("no enabled read-only endpoints")
+			enabled = ts
+		}
+	}
 	n := atomic.AddUint32(&c.next, 1)
 	ne := enabled[(int(n)-1)%len(enabled)].Endpoint
 	l.WithFields(log.Fields{
@@ -245,15 +260,16 @@ func (c *chain) NextEndpoint() (string, error) {
 	return ne, nil
 }
 
-func GetEndpoint(chainName string) (string, error) {
+func GetEndpoint(chainName string, readOnly bool) (string, error) {
 	l := log.WithFields(log.Fields{
-		"chain":  chainName,
-		"action": "GetEndpoint",
+		"chain":    chainName,
+		"action":   "GetEndpoint",
+		"readOnly": readOnly,
 	})
 	l.Info("getting endpoint")
 	for _, c := range Chains {
 		if c.Name == chainName {
-			ne, nerr := c.NextEndpoint()
+			ne, nerr := c.NextEndpoint(readOnly)
 			if nerr != nil {
 				l.WithError(nerr).Error("failed to get next endpoint")
 				return "", nerr

@@ -329,7 +329,12 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	l.Info("start")
 	defer l.Info("end")
 	l.Debug("get endpoint")
-	endpoint, err := GetEndpoint(chain)
+	var readOnly bool
+	if strings.HasSuffix(r.URL.Path, "/read") {
+		readOnly = true
+		l.Debug("read only endpoint")
+	}
+	endpoint, err := GetEndpoint(chain, readOnly)
 	if err != nil {
 		l.WithError(err).Error("failed to get endpoint")
 		w.WriteHeader(http.StatusInternalServerError)
