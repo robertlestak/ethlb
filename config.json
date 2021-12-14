@@ -50,11 +50,7 @@
         "name": "ethereum-ropsten",
         "endpoints": [
             {
-                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/MyKW1cMm2h4wiKFESr7K-jDXieHdMfMg",
-                "enabled": true
-            },
-            {
-                "endpoint": "https://eth-ropsten.alchemyapi.io/v2/jkmUMfbVoMRbNKQs8yjS2st-WlC1GTJC",
+                "endpoint": "http://172.31.19.151:8546",
                 "enabled": true
             }
         ]
