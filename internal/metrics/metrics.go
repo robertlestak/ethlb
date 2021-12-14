@@ -47,6 +47,22 @@ var (
 		},
 		[]string{"endpoint"},
 	)
+	EndpointEnabled = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: os.Getenv("PROMETHEUS_NAMESPACE"),
+			Name:      "endpoint_enabled",
+			Help:      "A boolean indicating whether the endpoint is enabled",
+		},
+		[]string{"chain", "endpoint"},
+	)
+	EndpointBlockHead = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: os.Getenv("PROMETHEUS_NAMESPACE"),
+			Name:      "endpoint_block_head",
+			Help:      "The block head of the endpoint",
+		},
+		[]string{"chain", "endpoint"},
+	)
 	responseTimeHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: os.Getenv("PROMETHEUS_NAMESPACE"),
 		Name:      "http_server_request_duration_seconds",
@@ -67,6 +83,8 @@ func registerMetrics() error {
 		CacheHit,
 		CacheMiss,
 		Cooldowns,
+		EndpointEnabled,
+		EndpointBlockHead,
 	)
 	return nil
 }

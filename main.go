@@ -31,6 +31,7 @@ func init() {
 	if ierr := cache.Init(); ierr != nil {
 		log.WithError(ierr).Fatal("failed to init cache")
 	}
+	go proxy.HealthProber()
 	go metrics.StartExporter()
 }
 

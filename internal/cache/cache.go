@@ -43,9 +43,12 @@ func Get(key string) (string, error) {
 	})
 	l.Info("Getting key from redis")
 	cmd := Client.Get(cachePrefix + key)
-	if cmd.Err() != nil {
+	if cmd.Err() != nil && cmd.Err() != redis.Nil {
 		l.Error("Failed to get key from redis")
 		return "", cmd.Err()
+	} else if cmd.Err() == redis.Nil {
+		l.Info("Key not found in redis")
+		return "", nil
 	}
 	l.Info("Got key from redis")
 	return cmd.Result()

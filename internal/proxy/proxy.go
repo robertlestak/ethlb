@@ -250,7 +250,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	}
 	rh := fmt.Sprintf("%x", md5.Sum(bd))
 	cacheKey := chain + ":" + rh
-	if os.Getenv("CACHE_DISABLED") != "true" {
+	// if server supports cache, and client does not have humun-cache=false header, cache
+	if os.Getenv("CACHE_DISABLED") != "true" && req.Header.Get("humun-cache") != "false" {
 		cd, cerr := cache.Get(cacheKey)
 		l = l.WithField("cache", cacheKey)
 		if cerr != nil {
