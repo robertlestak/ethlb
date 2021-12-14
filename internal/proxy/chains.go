@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/robertlestak/humun-chainmgr/internal/metrics"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -103,6 +104,9 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	var enabled []*ChainEndpoint
 	var failover []*ChainEndpoint
 	for _, e := range c.Endpoints {
+		if !e.CooldownUntil.IsZero() {
+			metrics.Cooldowns.WithLabelValues(e.Endpoint).Set(float64(e.CooldownUntil.Unix()))
+		}
 		if !e.Enabled && time.Now().After(e.CooldownUntil) {
 			e.Enabled = true
 			e.CooldownUntil = time.Time{}
@@ -145,6 +149,7 @@ func CooldownEndpoint(chain string, e string) error {
 				if ce.Endpoint == e && len(c.EnabledEndpoints()) > 1 {
 					ce.Enabled = false
 					ce.CooldownUntil = time.Now().Add(cdur)
+					metrics.Cooldowns.WithLabelValues(e).Set(float64(ce.CooldownUntil.Unix()))
 					l.Info("cooldown endpoint")
 					return nil
 				}

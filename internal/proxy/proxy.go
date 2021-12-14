@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/robertlestak/humun-chainmgr/internal/cache"
+	"github.com/robertlestak/humun-chainmgr/internal/metrics"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -263,6 +264,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 				return nil, err
 			}
 			resp.Header.Set("x-humun-cache", "hit")
+			metrics.CacheHit.WithLabelValues(chain, strconv.Itoa(resp.StatusCode), req.Method).Inc()
 			return resp, nil
 		}
 	}
@@ -309,6 +311,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	resp.Header.Set("x-humun-cache", "miss")
 	l.Debug("return response")
 	l.Debugf("response %+v", resp.StatusCode)
+	metrics.HTTPRequests.WithLabelValues(req.URL.String(), strconv.Itoa(resp.StatusCode), req.Method).Inc()
+	metrics.CacheMiss.WithLabelValues(chain, strconv.Itoa(resp.StatusCode), req.Method).Inc()
 	return resp, nil
 }
 
@@ -328,6 +332,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		l.WithError(err).Error("failed to get endpoint")
 		w.WriteHeader(http.StatusInternalServerError)
+		metrics.HTTPRequests.WithLabelValues(r.URL.String(), strconv.Itoa(http.StatusInternalServerError), r.Method).Inc()
 		return
 	}
 	l.Debug("create director")
@@ -336,6 +341,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			l.WithError(err).Error("failed to parse endpoint")
 			w.WriteHeader(http.StatusInternalServerError)
+			metrics.HTTPRequests.WithLabelValues(req.URL.String(), strconv.Itoa(http.StatusInternalServerError), r.Method).Inc()
 			return
 		}
 		req.URL.Scheme = u.Scheme
@@ -348,6 +354,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	e := func(w http.ResponseWriter, r *http.Request, e error) {
 		l.WithError(e).Error("failed to proxy")
 		http.Error(w, e.Error(), http.StatusBadGateway)
+		metrics.HTTPRequests.WithLabelValues(r.URL.String(), strconv.Itoa(http.StatusBadGateway), r.Method).Inc()
 	}
 	l.Debug("create transport")
 	defaultTransport := http.DefaultTransport.(*http.Transport)
