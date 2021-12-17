@@ -229,7 +229,9 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	})
 	l.Info("start")
 	defer l.Info("end")
-	defer req.Body.Close()
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
 	l.Debug("round trip")
 	vars := mux.Vars(req)
 	chain := vars["chain"]
