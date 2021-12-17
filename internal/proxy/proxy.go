@@ -229,6 +229,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	})
 	l.Info("start")
 	defer l.Info("end")
+	defer req.Body.Close()
 	l.Debug("round trip")
 	vars := mux.Vars(req)
 	chain := vars["chain"]
@@ -283,6 +284,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			time.Sleep(retryDelay)
 			continue
 		}
+		defer resp.Body.Close()
 		l.Debugf("check response code %d", resp.StatusCode)
 		if intInSlice(resp.StatusCode, retryableCodes) {
 			l.WithField("status", resp.StatusCode).Debug("retryable status code")
