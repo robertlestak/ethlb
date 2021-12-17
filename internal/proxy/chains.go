@@ -168,6 +168,9 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	if len(enabled) == 0 && len(failover) > 0 {
 		l.WithField("failover", len(failover)).Info("using failover endpoints")
 		return failover
+	} else if len(enabled) == 0 && len(failover) == 0 && len(c.Endpoints) == 1 {
+		l.WithField("failover", len(failover)).Info("using single endpoint")
+		return c.Endpoints
 	}
 	sort.Slice(enabled, func(i, j int) bool {
 		return enabled[i].BlockHead > enabled[j].BlockHead
