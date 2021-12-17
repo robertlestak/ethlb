@@ -369,7 +369,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	customTransport := &http.Transport{
 		Proxy:                 defaultTransport.Proxy,
 		DialContext:           defaultTransport.DialContext,
-		MaxIdleConns:          defaultTransport.MaxIdleConns,
+		MaxIdleConns:          200,
+		DisableKeepAlives:     true,
 		IdleConnTimeout:       defaultTransport.IdleConnTimeout,
 		ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
 		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
