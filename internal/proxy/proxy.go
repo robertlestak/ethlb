@@ -43,6 +43,10 @@ type transport struct {
 	http.RoundTripper
 }
 
+type JSONRPCContainer struct {
+	Single *JSONRPCResponse
+	Batch  []JSONRPCResponse
+}
 type JSONRPCResponse struct {
 	Jsonrpc string      `json:"jsonrpc"`
 	ID      int         `json:"id"`
@@ -147,6 +151,55 @@ func debugReqResp(req *http.Request, resp *http.Response) error {
 	return nil
 }
 
+func (c *JSONRPCContainer) unmarshalSingle(b []byte) error {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "unmarshalSingle",
+	})
+	l.Debug("start")
+	defer l.Debug("end")
+	var err error
+	err = json.Unmarshal(b, &c.Single)
+	if err != nil {
+		l.WithField("body", string(b)).WithError(err).Error("failed to unmarshal jsonrpc response")
+	}
+	return err
+}
+
+func (c *JSONRPCContainer) unmarshalMany(b []byte) error {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "unmarshalMany",
+	})
+	l.Debug("start")
+	defer l.Debug("end")
+	err := json.Unmarshal(b, &c.Batch)
+	if err != nil {
+		l.WithField("body", string(b)).WithError(err).Error("failed to unmarshal jsonrpc response")
+	}
+	return err
+}
+
+func (c *JSONRPCContainer) Unmarshal(b []byte) error {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "Unmarshal",
+	})
+	l.Debug("start")
+	defer l.Debug("end")
+	switch b[0] {
+	case '{':
+		return c.unmarshalSingle(b)
+	case '[':
+		return c.unmarshalMany(b)
+	}
+	err := c.unmarshalMany(b)
+	if err != nil {
+		return c.unmarshalSingle(b)
+	}
+	return nil
+}
+
 func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *http.Response, err error) {
 	l := log.WithFields(log.Fields{
 		"package": "proxy",
@@ -193,16 +246,16 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 		return nil, perr
 	}
 	l.Debug("set response body")
-	rpcres := JSONRPCResponse{}
+	rpcres := JSONRPCContainer{}
 	l.Debugf("parse response body: %s", string(pd))
 	if len(pd) > 0 {
-		err = json.Unmarshal(pd, &rpcres)
-		if err != nil {
-			l.WithField("body", string(pd)).WithError(err).Error("failed to unmarshal jsonrpc response")
-		}
+		err = rpcres.Unmarshal(pd)
 	}
 	cacheable := false
-	if resp.StatusCode == http.StatusOK && os.Getenv("CACHE_DISABLED") != "true" && rpcres.Result != nil {
+	if resp.StatusCode == http.StatusOK &&
+		os.Getenv("CACHE_DISABLED") != "true" &&
+		((rpcres.Single != nil && rpcres.Single.Result != nil) ||
+			(rpcres.Batch != nil && len(rpcres.Batch) > 0)) {
 		cacheable = true
 	}
 	l.Debug("cacheable: ", cacheable)
