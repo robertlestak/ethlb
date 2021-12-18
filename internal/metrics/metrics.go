@@ -76,7 +76,7 @@ func registerMetrics() error {
 		"module": "metrics",
 		"action": "registerMetrics",
 	})
-	l.Info("registering metrics")
+	l.Debug("registering metrics")
 	prometheus.MustRegister(
 		HTTPRequests,
 		responseTimeHistogram,
@@ -116,7 +116,7 @@ func StartExporter() error {
 		"component": "metrics",
 		"action":    "start",
 	})
-	l.Info("starting metrics exporter")
+	l.Debug("starting metrics exporter")
 	if rerr := registerMetrics(); rerr != nil {
 		l.WithError(rerr).Error("error registering metrics")
 		return rerr
@@ -129,7 +129,7 @@ func StartExporter() error {
 	if os.Getenv("PROMETHEUS_PORT") != "" {
 		promPort = os.Getenv("PROMETHEUS_PORT")
 	}
-	l.Infof("starting metrics exporter on port %s", promPort)
+	l.Debugf("starting metrics exporter on port %s", promPort)
 	http.ListenAndServe(":"+promPort, nil)
 	return nil
 }

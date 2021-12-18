@@ -39,7 +39,7 @@ func main() {
 	l := log.WithFields(log.Fields{
 		"action": "main",
 	})
-	l.Info("start")
+	l.Debug("start")
 	r := mux.NewRouter()
 	r.HandleFunc("/{chain}", proxy.Handler)
 	r.HandleFunc("/{chain}/read", proxy.Handler)
@@ -48,6 +48,6 @@ func main() {
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	l.Info("listening on port " + port)
+	l.Debug("listening on port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

@@ -43,8 +43,8 @@ type Chain interface {
 
 func CreateChainClients() error {
 	l := log.WithFields(log.Fields{"func": "CreateChainClients"})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	// loop all chains
 	for _, c := range Chains {
 		// loop each chain endpoints
@@ -53,7 +53,7 @@ func CreateChainClients() error {
 			if ce.Enabled && ce.Client == nil {
 				l.WithFields(log.Fields{
 					"endpoint": ce.Endpoint,
-				}).Info("creating ethclient")
+				}).Debug("creating ethclient")
 				client, err := ethclient.Dial(ce.Endpoint)
 				if err != nil {
 					l.WithError(err).Error("failed to create ethclient")
@@ -69,7 +69,7 @@ func CreateChainClients() error {
 
 func UnmarshalJSON(data []byte) error {
 	l := log.WithFields(log.Fields{"action": "UnmarshalJSON"})
-	l.Info("unmarshalling config")
+	l.Debug("unmarshalling config")
 	var chains []*chain
 	if err := json.Unmarshal(data, &chains); err != nil {
 		return err
@@ -97,20 +97,20 @@ func UnmarshalJSON(data []byte) error {
 		l.WithError(cerr).Error("failed to create chain clients")
 		return cerr
 	}
-	l.WithField("chains", len(Chains)).Info("unmarshalled config")
+	l.WithField("chains", len(Chains)).Debug("unmarshalled config")
 	for _, c := range Chains {
 		l.WithFields(log.Fields{
 			"chain":          c.Name,
 			"endpointsCount": len(c.Endpoints),
 			"endpoints":      c.Endpoints,
-		}).Info("unmarshalled chain")
+		}).Debug("unmarshalled chain")
 	}
 	return nil
 }
 
 func LoadConfigFile(filename string) error {
 	l := log.WithFields(log.Fields{"filename": filename, "action": "LoadConfigFile"})
-	l.Info("loading config file")
+	l.Debug("loading config file")
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		l.WithError(err).Error("failed to read config file")
@@ -121,7 +121,7 @@ func LoadConfigFile(filename string) error {
 
 func HotLoadConfigFile(filename string) error {
 	l := log.WithFields(log.Fields{"filename": filename, "action": "HotLoadConfigFile"})
-	l.Info("hot loading config file")
+	l.Debug("hot loading config file")
 	if err := LoadConfigFile(filename); err != nil {
 		l.WithError(err).Error("failed to hot load config file")
 		return err
@@ -134,7 +134,7 @@ func HotLoadConfigFile(filename string) error {
 			if err := LoadConfigFile(filename); err != nil {
 				l.WithError(err).Fatal("failed to hot load config file")
 			}
-			l.Info("hot loaded config file")
+			l.Debug("hot loaded config file")
 			time.Sleep(time.Second * 60)
 		}
 	}()
@@ -146,7 +146,7 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 		"chain":  c.Name,
 		"action": "EnabledEndpoints",
 	})
-	l.Info("getting enabled endpoints")
+	l.Debug("getting enabled endpoints")
 	var enabled []*ChainEndpoint
 	var failover []*ChainEndpoint
 	for _, e := range c.Endpoints {
@@ -166,10 +166,10 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	}
 	// if enabled list is empty, return failover list
 	if len(enabled) == 0 && len(failover) > 0 {
-		l.WithField("failover", len(failover)).Info("using failover endpoints")
+		l.WithField("failover", len(failover)).Debug("using failover endpoints")
 		return failover
 	} else if len(enabled) == 0 && len(failover) == 0 && len(c.Endpoints) == 1 {
-		l.WithField("failover", len(failover)).Info("using single endpoint")
+		l.WithField("failover", len(failover)).Debug("using single endpoint")
 		return c.Endpoints
 	}
 	sort.Slice(enabled, func(i, j int) bool {
@@ -181,11 +181,11 @@ func (c *chain) EnabledEndpoints() []*ChainEndpoint {
 	for _, e := range enabled {
 		if hb >= e.BlockHead {
 			l = l.WithField("endpoint", e.Endpoint)
-			l.Info("adding endpoint to block-head enabled list")
+			l.Debug("adding endpoint to block-head enabled list")
 			retEnabled = append(retEnabled, e)
 		}
 	}
-	l.WithField("enabled", len(retEnabled)).Info("enabled endpoints")
+	l.WithField("enabled", len(retEnabled)).Debug("enabled endpoints")
 	return retEnabled
 }
 
@@ -195,7 +195,7 @@ func CooldownEndpoint(chain string, e string) error {
 		"action":   "CooldownEndpoint",
 		"endpoint": e,
 	})
-	l.Info("cooldown endpoint")
+	l.Debug("cooldown endpoint")
 	cdur := time.Minute * 1
 	var err error
 	if os.Getenv("COOLDOWN_DURATION") != "" {
@@ -213,7 +213,7 @@ func CooldownEndpoint(chain string, e string) error {
 					ce.Enabled = false
 					ce.CooldownUntil = time.Now().Add(cdur)
 					metrics.Cooldowns.WithLabelValues(e).Set(float64(ce.CooldownUntil.Unix()))
-					l.Info("cooldown endpoint")
+					l.Debug("cooldown endpoint")
 					return nil
 				}
 			}
@@ -229,7 +229,7 @@ func (c *chain) NextEndpoint(readOnly bool) (string, error) {
 		"action":   "NextEndpoint",
 		"readOnly": readOnly,
 	})
-	l.Info("getting next endpoint")
+	l.Debug("getting next endpoint")
 	var es string
 	if len(c.Endpoints) == 0 {
 		l.Error("no endpoints")
@@ -249,7 +249,7 @@ func (c *chain) NextEndpoint(readOnly bool) (string, error) {
 			}
 		}
 		if len(enabled) == 0 {
-			l.Infof("no enabled read-only endpoints")
+			l.Debugf("no enabled read-only endpoints")
 			enabled = ts
 		}
 	}
@@ -259,7 +259,7 @@ func (c *chain) NextEndpoint(readOnly bool) (string, error) {
 		"next":     n,
 		"len":      len(enabled),
 		"endpoint": ne,
-	}).Info("next endpoint")
+	}).Debug("next endpoint")
 	return ne, nil
 }
 
@@ -269,7 +269,7 @@ func GetEndpoint(chainName string, readOnly bool) (string, error) {
 		"action":   "GetEndpoint",
 		"readOnly": readOnly,
 	})
-	l.Info("getting endpoint")
+	l.Debug("getting endpoint")
 	for _, c := range Chains {
 		if c.Name == chainName {
 			ne, nerr := c.NextEndpoint(readOnly)
@@ -289,15 +289,15 @@ func (c *chain) UpdateEndpointBlockHead(ctx context.Context) error {
 		"chain":  c.Name,
 		"action": "UpdateEndpointBlockHead",
 	})
-	l.Info("start")
+	l.Debug("start")
 	for _, e := range c.Endpoints {
 		l = l.WithField("endpoint", e.Endpoint)
 		if e.Client == nil {
-			l.WithField("endpoint", e.Endpoint).Info("endpoint with no client")
+			l.WithField("endpoint", e.Endpoint).Debug("endpoint with no client")
 			e.Enabled = false
 		}
 		if !e.Enabled {
-			l.WithField("endpoint", e.Endpoint).Info("skipping disabled endpoint")
+			l.WithField("endpoint", e.Endpoint).Debug("skipping disabled endpoint")
 			metrics.EndpointEnabled.WithLabelValues(c.Name, e.Endpoint).Set(0)
 			continue
 		}
@@ -314,9 +314,9 @@ func (c *chain) UpdateEndpointBlockHead(ctx context.Context) error {
 		l = l.WithField("block", bn)
 		if e.BlockHead != bn {
 			e.BlockHead = bn
-			l.Info("updated endpoint block head")
+			l.Debug("updated endpoint block head")
 		} else {
-			l.Info("endpoint block head unchanged")
+			l.Debug("endpoint block head unchanged")
 		}
 		metrics.EndpointBlockHead.WithLabelValues(c.Name, e.Endpoint).Set(float64(e.BlockHead))
 		// if cooldown is zero, zero out metric
@@ -331,7 +331,7 @@ func (c *chain) UpdateEndpointBlockHead(ctx context.Context) error {
 			metrics.EndpointEnabled.WithLabelValues(c.Name, e.Endpoint).Set(0)
 		}
 	}
-	l.Info("end")
+	l.Debug("end")
 	return nil
 }
 
@@ -339,7 +339,7 @@ func updateBlockHeadWorker(ctx context.Context, chains chan *chain, res chan err
 	l := log.WithFields(log.Fields{
 		"action": "updateBlockHeadWorker",
 	})
-	l.Info("start")
+	l.Debug("start")
 	for c := range chains {
 		l = l.WithField("chain", c.Name)
 		if err := c.UpdateEndpointBlockHead(ctx); err != nil {
@@ -355,8 +355,8 @@ func UpdateChainBlockHeads(ctx context.Context) error {
 	l := log.WithFields(log.Fields{
 		"action": "UpdateChainBlockHeads",
 	})
-	l.Info("updating chain block heads")
-	defer l.Info("updated chain block heads")
+	l.Debug("updating chain block heads")
+	defer l.Debug("updated chain block heads")
 	chains := make(chan *chain, len(Chains))
 	res := make(chan error, len(Chains))
 	l = l.WithField("chains", len(Chains))
@@ -395,8 +395,8 @@ func HealthProber() {
 	l := log.WithFields(log.Fields{
 		"action": "HealthProber",
 	})
-	l.Info("starting block head updater")
-	defer l.Info("stopped block head updater")
+	l.Debug("starting block head updater")
+	defer l.Debug("stopped block head updater")
 	var probeInterval = time.Second * 10
 	if os.Getenv("PROBE_INTERVAL") != "" {
 		var err error

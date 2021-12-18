@@ -63,8 +63,8 @@ func ConfigRetryHandler() error {
 		"package": "proxy",
 		"method":  "ConfigRetryHandler",
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	var err error
 	if os.Getenv("MAX_RETRIES") != "" {
 		maxRetries, err = strconv.Atoi(os.Getenv("MAX_RETRIES"))
@@ -106,8 +106,8 @@ func respFromCache(cd string) (resp *http.Response, err error) {
 		"package": "proxy",
 		"method":  "respFromCache",
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	decoded, derr := base64.StdEncoding.DecodeString(cd)
 	if derr != nil {
 		l.WithError(derr).Error("decode cache")
@@ -127,8 +127,8 @@ func debugReqResp(req *http.Request, resp *http.Response) error {
 		"package": "proxy",
 		"method":  "debugReqResp",
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	var err error
 	var reqDump []byte
 	var respDump []byte
@@ -137,13 +137,13 @@ func debugReqResp(req *http.Request, resp *http.Response) error {
 		l.WithError(err).Error("dump request")
 		return err
 	}
-	l.WithField("request", string(reqDump)).Info("request")
+	l.WithField("request", string(reqDump)).Debug("request")
 	respDump, err = httputil.DumpResponse(resp, true)
 	if err != nil {
 		l.WithError(err).Error("dump response")
 		return err
 	}
-	l.WithField("response", string(respDump)).Info("response")
+	l.WithField("response", string(respDump)).Debug("response")
 	return nil
 }
 
@@ -152,8 +152,8 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 		"package": "proxy",
 		"method":  "reqRoundTripper",
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	var cerr error
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
@@ -227,8 +227,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		"method": req.Method,
 		"url":    req.URL.String(),
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	if req.Body != nil {
 		defer req.Body.Close()
 	}
@@ -261,7 +261,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			l.WithError(cerr).Error("get cache")
 		}
 		if cd != "" {
-			l.Info("cache hit")
+			l.Debug("cache hit")
 			resp, err = respFromCache(cd)
 			if err != nil {
 				l.WithError(err).Error("failed to read response from cache")
@@ -272,7 +272,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			return resp, nil
 		}
 	}
-	l.Info("cache miss")
+	l.Debug("cache miss")
 	var retries int
 	for retries < maxRetries {
 		l = l.WithField("retry", retries)
@@ -330,8 +330,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		"chain":  chain,
 		"action": "proxy.Handler",
 	})
-	l.Info("start")
-	defer l.Info("end")
+	l.Debug("start")
+	defer l.Debug("end")
 	l.Debug("get endpoint")
 	var readOnly bool
 	if strings.HasSuffix(r.URL.Path, "/read") {

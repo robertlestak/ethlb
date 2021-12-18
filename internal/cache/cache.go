@@ -22,7 +22,7 @@ func Init() error {
 	l := log.WithFields(log.Fields{
 		"package": "cache",
 	})
-	l.Info("Initializing redis client")
+	l.Debug("Initializing redis client")
 	Client = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
 		Password: "", // no password set
@@ -33,7 +33,7 @@ func Init() error {
 		l.Error("Failed to connect to redis")
 		return cmd.Err()
 	}
-	l.Info("Connected to redis")
+	l.Debug("Connected to redis")
 	return nil
 }
 
@@ -41,16 +41,16 @@ func Get(key string) (string, error) {
 	l := log.WithFields(log.Fields{
 		"package": "cache",
 	})
-	l.Info("Getting key from redis")
+	l.Debug("Getting key from redis")
 	cmd := Client.Get(cachePrefix + key)
 	if cmd.Err() != nil && cmd.Err() != redis.Nil {
 		l.Error("Failed to get key from redis")
 		return "", cmd.Err()
 	} else if cmd.Err() == redis.Nil {
-		l.Info("Key not found in redis")
+		l.Debug("Key not found in redis")
 		return "", nil
 	}
-	l.Info("Got key from redis")
+	l.Debug("Got key from redis")
 	return cmd.Result()
 }
 
@@ -58,12 +58,12 @@ func Set(key string, value string, exp time.Duration) error {
 	l := log.WithFields(log.Fields{
 		"package": "cache",
 	})
-	l.Info("Setting key in redis")
+	l.Debug("Setting key in redis")
 	cmd := Client.Set(cachePrefix+key, value, exp)
 	if cmd.Err() != nil {
 		l.Error("Failed to set key in redis")
 		return cmd.Err()
 	}
-	l.Info("Set key in redis")
+	l.Debug("Set key in redis")
 	return nil
 }
