@@ -198,7 +198,7 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	if len(pd) > 0 {
 		err = json.Unmarshal(pd, &rpcres)
 		if err != nil {
-			l.WithError(err).Error("failed to unmarshal jsonrpc response")
+			l.WithField("body", string(pd)).WithError(err).Error("failed to unmarshal jsonrpc response")
 		}
 	}
 	cacheable := false
