@@ -358,7 +358,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		req.URL.Host = u.Host
 		req.Host = u.Host
 		req.URL.Path = u.Path
-		l.Printf("proxying to %s", req.URL.String())
+		l.Debugf("proxying to %s", req.URL.String())
 	}
 	l.Debug("create error handler")
 	e := func(w http.ResponseWriter, r *http.Request, e error) {
