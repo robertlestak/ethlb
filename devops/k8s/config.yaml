@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chainmgr
+  namespace: humun-core-crypto
+data:
+  config.json: |
+    [
+        {
+            "name": "polygon-mumbai",
+            "endpoints": [
+                {
+                    "endpoint": "http://35.86.174.0:8149",
+                    "enabled": false
+                }
+            ]
+        },
+        {
+            "name": "polygon",
+            "endpoints": [
+                {
+                    "endpoint": "http://35.86.174.0:8145",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "ethereum",
+            "endpoints": [
+                {
+                    "endpoint": "http://35.86.174.0:8545",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "ethereum-ropsten",
+            "endpoints": [
+                {
+                    "endpoint": "http://35.86.174.0:8546",
+                    "enabled": true
+                }
+            ]
+        }
+    ]

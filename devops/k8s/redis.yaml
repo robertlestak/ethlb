@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chainmgr-redis
+  namespace: humun-core-crypto
+  labels:
+    app: chainmgr-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chainmgr-redis
+  template:
+    metadata:
+      labels:
+        app: chainmgr-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+        ports:
+          - containerPort: 6379
+            name: tcp-redis
+        volumeMounts:
+        - name: redis
+          mountPath: /data
+      volumes:
+      - name: redis
+        persistentVolumeClaim:
+          claimName: chainmgr-redis
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chainmgr-redis
+  namespace: humun-core-crypto
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chainmgr-redis
+  namespace: humun-core-crypto
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      name: tcp-redis
+      port: 6379
+      targetPort: 6379

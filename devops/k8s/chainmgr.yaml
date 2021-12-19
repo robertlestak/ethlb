@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chainmgr
+  namespace: humun-core-crypto
+  labels:
+    app: chainmgr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chainmgr
+  template:
+    metadata:
+      labels:
+        app: chainmgr
+    spec:
+      containers:
+      - name: chainmgr
+        image: registry.lestak.sh/humun-chainmgr:1
+        command: ["sleep", "infinity"]
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+        envFrom:
+          - secretRef:
+              name: chainmgr
+        ports:
+          - containerPort: 9988
+            name: http
+          - containerPort: 9090
+            name: metrics
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+        #livenessProbe:
+        #  httpGet:
+        #    path: /
+        #    port: 9988
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 3
+        #readinessProbe:
+        #  httpGet:
+        #    path: /
+        #    port: 9988
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: chainmgr
+          items:
+          - key: "config.json"
+            path: "config.json"
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chainmgr
+  namespace: humun-core-crypto
+  labels:
+    app: chainmgr
+spec:
+  type: ClusterIP
+  selector:
+    app: indexer
+    component: server
+  ports:
+    - protocol: TCP
+      port: 9988
+      targetPort: 9988
