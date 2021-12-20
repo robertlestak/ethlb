@@ -19,7 +19,6 @@ spec:
       containers:
       - name: chainmgr
         image: registry.lestak.sh/humun-chainmgr:1
-        command: ["sleep", "infinity"]
         resources:
           requests:
             cpu: 500m
@@ -38,18 +37,18 @@ spec:
         volumeMounts:
         - name: config
           mountPath: "/config"
-        #livenessProbe:
-        #  httpGet:
-        #    path: /
-        #    port: 9988
-        #  initialDelaySeconds: 30
-        #  periodSeconds: 3
-        #readinessProbe:
-        #  httpGet:
-        #    path: /
-        #    port: 9988
-        #  initialDelaySeconds: 30
-        #  periodSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9988
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9988
+          initialDelaySeconds: 30
+          periodSeconds: 3
       volumes:
       - name: config
         configMap:
