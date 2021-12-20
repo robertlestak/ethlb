@@ -215,6 +215,9 @@ func CooldownEndpoint(chain string, e string) error {
 					metrics.Cooldowns.WithLabelValues(e).Set(float64(ce.CooldownUntil.Unix()))
 					l.Debug("cooldown endpoint")
 					return nil
+				} else if ce.Endpoint == e && len(c.EnabledEndpoints()) == 1 {
+					l.Debug("not cooling down endpoint")
+					return nil
 				}
 			}
 		}
