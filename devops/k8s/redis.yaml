@@ -59,7 +59,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: redis
+    app: chainmgr-redis
   ports:
     - protocol: TCP
       name: tcp-redis
