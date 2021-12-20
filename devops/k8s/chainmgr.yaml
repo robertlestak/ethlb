@@ -7,7 +7,7 @@ metadata:
   labels:
     app: chainmgr
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: chainmgr
@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: chainmgr
-        image: registry.lestak.sh/humun-chainmgr:1
+        image: registry.lestak.sh/humun-chainmgr:6
         resources:
           requests:
             cpu: 500m
@@ -31,23 +31,22 @@ spec:
               name: chainmgr
         ports:
           - containerPort: 9988
-            name: http
+            name: tcp
+            protocol: TCP
           - containerPort: 9090
             name: metrics
         volumeMounts:
         - name: config
           mountPath: "/config"
         livenessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: 9988
-          initialDelaySeconds: 30
+          initialDelaySeconds: 5
           periodSeconds: 3
         readinessProbe:
-          httpGet:
-            path: /
+          tcpSocket:
             port: 9988
-          initialDelaySeconds: 30
+          initialDelaySeconds: 5
           periodSeconds: 3
       volumes:
       - name: config
@@ -68,9 +67,9 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: indexer
-    component: server
+    app: chainmgr
   ports:
     - protocol: TCP
       port: 9988
+      name: tcp
       targetPort: 9988

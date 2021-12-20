@@ -158,8 +158,7 @@ func (c *JSONRPCContainer) unmarshalSingle(b []byte) error {
 	})
 	l.Debug("start")
 	defer l.Debug("end")
-	var err error
-	err = json.Unmarshal(b, &c.Single)
+	err := json.Unmarshal(b, &c.Single)
 	if err != nil {
 		l.WithField("body", string(b)).WithError(err).Error("failed to unmarshal jsonrpc response")
 	}
@@ -303,6 +302,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			l.WithError(err).Error("failed to read request body")
 			return nil, err
 		}
+		l.Debug("request: ", string(bd))
 	}
 	rh := fmt.Sprintf("%x", md5.Sum(bd))
 	cacheKey := chain + ":" + rh
@@ -320,8 +320,10 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 				l.WithError(err).Error("failed to read response from cache")
 				return nil, err
 			}
+			l.Debugf("response: %s", string(rbd))
 			resp.Header.Set("x-humun-cache", "hit")
 			metrics.CacheHit.WithLabelValues(chain, strconv.Itoa(resp.StatusCode), req.Method).Inc()
+			l.Debug("send response from cache")
 			return resp, nil
 		}
 	}
