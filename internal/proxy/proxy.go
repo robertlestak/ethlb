@@ -274,6 +274,37 @@ func (t *transport) reqRoundTripper(req *http.Request, cacheKey string) (resp *h
 	return resp, nil
 }
 
+func cleanReq(req *http.Request) {
+	l := log.WithFields(log.Fields{
+		"package": "proxy",
+		"method":  "cleanReq",
+	})
+	l.Debug("start")
+	var protected = []string{
+		"Authorization",
+		"Content-Type",
+		"Accept",
+		"Content-Length",
+		"Content-Encoding",
+	}
+	l.WithField("protected", protected).Debug("remove headers")
+	for n := range req.Header {
+		l.WithField("header", n).Debug("check header")
+		var found bool
+	RangeProtected:
+		for _, p := range protected {
+			if n == p {
+				found = true
+				break RangeProtected
+			}
+		}
+		if !found {
+			l.WithField("header", n).Debug("remove header")
+			req.Header.Del(n)
+		}
+	}
+}
+
 func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	l := log.WithFields(log.Fields{
 		"method": req.Method,
@@ -291,7 +322,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	var rbd []byte
 	if req.Body != nil {
 		// drop host from cache key
-		req.Header.Set("Host", "")
+		cleanReq(req)
 		bd, err = httputil.DumpRequest(req, true)
 		if err != nil {
 			l.WithError(err).Error("failed to dump request")
