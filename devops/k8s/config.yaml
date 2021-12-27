@@ -11,7 +11,7 @@ data:
             "name": "polygon-mumbai",
             "endpoints": [
                 {
-                    "endpoint": "http://35.86.174.0:8149",
+                    "endpoint": "http://52.13.110.103:8149",
                     "enabled": false
                 }
             ]
@@ -20,7 +20,7 @@ data:
             "name": "polygon",
             "endpoints": [
                 {
-                    "endpoint": "http://35.86.174.0:8145",
+                    "endpoint": "http://52.13.110.103:8145",
                     "enabled": true
                 }
             ]
@@ -29,7 +29,7 @@ data:
             "name": "ethereum",
             "endpoints": [
                 {
-                    "endpoint": "http://35.86.174.0:8545",
+                    "endpoint": "http://geth-mainnet.humun-core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]
@@ -38,7 +38,7 @@ data:
             "name": "ethereum-ropsten",
             "endpoints": [
                 {
-                    "endpoint": "http://35.86.174.0:8546",
+                    "endpoint": "http://geth-ropsten.humun-core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]

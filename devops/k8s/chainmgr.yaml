@@ -7,7 +7,7 @@ metadata:
   labels:
     app: chainmgr
 spec:
-  replicas: 3
+  replicas: 10
   selector:
     matchLabels:
       app: chainmgr
@@ -15,14 +15,19 @@ spec:
     metadata:
       labels:
         app: chainmgr
+        sidecar.istio.io/inject: "false"
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/metrics'
+        prometheus.io/port: '9090'
     spec:
       containers:
       - name: chainmgr
-        image: registry.lestak.sh/humun-chainmgr:8
+        image: registry.lestak.sh/humun-chainmgr:14
         resources:
           requests:
-            cpu: 500m
-            memory: 500Mi
+            cpu: 50m
+            memory: 50Mi
           limits:
             cpu: 4000m
             memory: 4Gi
@@ -48,6 +53,11 @@ spec:
             port: 9988
           initialDelaySeconds: 5
           periodSeconds: 3
+      tolerations:
+        - key: arch
+          value: arm64
+          operator: "Equal"
+          effect: "PreferNoSchedule"
       volumes:
       - name: config
         configMap:

@@ -16,3 +16,5 @@ spec:
     route:
     - destination:
         host: chainmgr
+        port:
+          number: 9988

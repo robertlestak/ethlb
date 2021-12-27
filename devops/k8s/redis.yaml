@@ -15,6 +15,7 @@ spec:
     metadata:
       labels:
         app: chainmgr-redis
+        sidecar.istio.io/inject: "false"
     spec:
       containers:
       - name: redis
@@ -25,7 +26,7 @@ spec:
             memory: 500Mi
           limits:
             cpu: 4000m
-            memory: 4Gi
+            memory: 8Gi
         ports:
           - containerPort: 6379
             name: tcp-redis

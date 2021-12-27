@@ -455,14 +455,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	l.Debug("create transport")
 	defaultTransport := http.DefaultTransport.(*http.Transport)
 	customTransport := &http.Transport{
-		Proxy:                 defaultTransport.Proxy,
-		DialContext:           defaultTransport.DialContext,
-		MaxIdleConns:          10000,
-		MaxIdleConnsPerHost:   10000,
-		DisableKeepAlives:     true,
+		Proxy:               defaultTransport.Proxy,
+		DialContext:         defaultTransport.DialContext,
+		MaxIdleConns:        10000,
+		MaxIdleConnsPerHost: 10000,
+		//DisableKeepAlives:     true,
 		IdleConnTimeout:       defaultTransport.IdleConnTimeout,
 		ExpectContinueTimeout: defaultTransport.ExpectContinueTimeout,
 		TLSHandshakeTimeout:   defaultTransport.TLSHandshakeTimeout,
+		ResponseHeaderTimeout: defaultTransport.ResponseHeaderTimeout,
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}
 	l.Debug("create proxy")
