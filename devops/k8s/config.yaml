@@ -11,7 +11,7 @@ data:
             "name": "polygon-mumbai",
             "endpoints": [
                 {
-                    "endpoint": "http://52.13.110.103:8149",
+                    "endpoint": "http://54.218.81.122:8149",
                     "enabled": false
                 }
             ]
@@ -20,7 +20,7 @@ data:
             "name": "polygon",
             "endpoints": [
                 {
-                    "endpoint": "http://52.13.110.103:8145",
+                    "endpoint": "http://54.218.81.122:8145",
                     "enabled": true
                 }
             ]

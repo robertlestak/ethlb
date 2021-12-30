@@ -6,7 +6,7 @@ metadata:
   namespace: humun-core-crypto
 spec:
   hosts:
-  - "humun-chainmgr.lestak.sh"
+  - "chainmgr.humun.us"
   gateways:
   - istio-system/ingressgateway
   http:
