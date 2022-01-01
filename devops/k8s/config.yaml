@@ -11,7 +11,7 @@ data:
             "name": "polygon-mumbai",
             "endpoints": [
                 {
-                    "endpoint": "http://54.218.81.122:8149",
+                    "endpoint": "http://bor-mumbai.humun-core-nodes.svc.cluster.local.:8545",
                     "enabled": false
                 }
             ]
@@ -20,7 +20,7 @@ data:
             "name": "polygon",
             "endpoints": [
                 {
-                    "endpoint": "http://54.218.81.122:8145",
+                    "endpoint": "http://bor-mainnet.humun-core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]
