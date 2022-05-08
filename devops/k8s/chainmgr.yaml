@@ -15,7 +15,6 @@ spec:
     metadata:
       labels:
         app: chainmgr
-        sidecar.istio.io/inject: "false"
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/path: '/metrics'
@@ -36,7 +35,7 @@ spec:
               name: chainmgr
         ports:
           - containerPort: 9988
-            name: tcp
+            name: http
             protocol: TCP
           - containerPort: 9090
             name: metrics
@@ -81,5 +80,5 @@ spec:
   ports:
     - protocol: TCP
       port: 9988
-      name: tcp
+      name: http
       targetPort: 9988
