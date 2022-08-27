@@ -3,7 +3,7 @@
         "name": "polygon-mumbai",
         "endpoints": [
             {
-                "endpoint": "http://172.31.19.151:8149",
+                "endpoint": "http://node:8145",
                 "enabled": false
             }
         ]
@@ -12,7 +12,7 @@
         "name": "polygon",
         "endpoints": [
             {
-                "endpoint": "http://172.31.19.151:8145",
+                "endpoint": "http://node:8145",
                 "enabled": true
             }
         ]
@@ -21,7 +21,7 @@
         "name": "ethereum",
         "endpoints": [
             {
-                "endpoint": "http://172.31.19.151:8545",
+                "endpoint": "http://node:8145",
                 "enabled": true
             }
         ]
@@ -30,7 +30,7 @@
         "name": "ethereum-ropsten",
         "endpoints": [
             {
-                "endpoint": "http://172.31.19.151:8546",
+                "endpoint": "http://node:8145",
                 "enabled": true
             }
         ]

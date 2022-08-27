@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chainmgr-redis
-  namespace: humun-core-crypto
+  name: ethlb-redis
+  namespace: core-crypto
   labels:
-    app: chainmgr-redis
+    app: ethlb-redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: chainmgr-redis
+      app: ethlb-redis
   template:
     metadata:
       labels:
-        app: chainmgr-redis
+        app: ethlb-redis
         sidecar.istio.io/inject: "false"
     spec:
       containers:
@@ -36,13 +36,13 @@ spec:
       volumes:
       - name: redis
         persistentVolumeClaim:
-          claimName: chainmgr-redis
+          claimName: ethlb-redis
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: chainmgr-redis
-  namespace: humun-core-crypto
+  name: ethlb-redis
+  namespace: core-crypto
 spec:
   accessModes:
     - ReadWriteOnce
@@ -53,14 +53,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: chainmgr-redis
-  namespace: humun-core-crypto
+  name: ethlb-redis
+  namespace: core-crypto
   labels:
     app: redis
 spec:
   type: ClusterIP
   selector:
-    app: chainmgr-redis
+    app: ethlb-redis
   ports:
     - protocol: TCP
       name: tcp-redis

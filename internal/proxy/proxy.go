@@ -20,8 +20,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/robertlestak/humun-chainmgr/internal/cache"
-	"github.com/robertlestak/humun-chainmgr/internal/metrics"
+	"github.com/robertlestak/ethlb/internal/cache"
+	"github.com/robertlestak/ethlb/internal/metrics"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -337,8 +337,8 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	}
 	rh := fmt.Sprintf("%x", md5.Sum(bd))
 	cacheKey := chain + ":" + rh
-	// if server supports cache, and client does not have humun-cache=false header, cache
-	if os.Getenv("CACHE_DISABLED") != "true" && req.Header.Get("humun-cache") != "false" {
+	// if server supports cache, and client does not have ethlbcache=false header, cache
+	if os.Getenv("CACHE_DISABLED") != "true" && req.Header.Get("ethlbcache") != "false" {
 		cd, cerr := cache.Get(cacheKey)
 		l = l.WithField("cache", cacheKey)
 		if cerr != nil {
@@ -352,7 +352,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 				return nil, err
 			}
 			l.Debugf("response: %s", string(rbd))
-			resp.Header.Set("x-humun-cache", "hit")
+			resp.Header.Set("x-ethlb-cache", "hit")
 			metrics.CacheHit.WithLabelValues(chain, strconv.Itoa(resp.StatusCode), req.Method).Inc()
 			l.Debug("send response from cache")
 			return resp, nil
@@ -399,7 +399,7 @@ func (t *transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 		}
 		return nil, retErr
 	}
-	resp.Header.Set("x-humun-cache", "miss")
+	resp.Header.Set("x-ethlb-cache", "miss")
 	l.Debug("return response")
 	l.Debugf("response %+v", resp.StatusCode)
 	metrics.HTTPRequests.WithLabelValues(req.URL.String(), strconv.Itoa(resp.StatusCode), req.Method).Inc()

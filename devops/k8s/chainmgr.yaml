@@ -2,27 +2,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chainmgr
-  namespace: humun-core-crypto
+  name: ethlb
+  namespace: core-crypto
   labels:
-    app: chainmgr
+    app: ethlb
 spec:
   replicas: 10
   selector:
     matchLabels:
-      app: chainmgr
+      app: ethlb
   template:
     metadata:
       labels:
-        app: chainmgr
+        app: ethlb
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/path: '/metrics'
         prometheus.io/port: '9090'
     spec:
       containers:
-      - name: chainmgr
-        image: registry.lestak.sh/humun-chainmgr:14
+      - name: ethlb
+        image: registry.lestak.sh/ethlbethlb:14
         resources:
           requests:
             cpu: 50m
@@ -32,7 +32,7 @@ spec:
             memory: 4Gi
         envFrom:
           - secretRef:
-              name: chainmgr
+              name: ethlb
         ports:
           - containerPort: 9988
             name: http
@@ -60,7 +60,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: chainmgr
+          name: ethlb
           items:
           - key: "config.json"
             path: "config.json"
@@ -69,14 +69,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: chainmgr
-  namespace: humun-core-crypto
+  name: ethlb
+  namespace: core-crypto
   labels:
-    app: chainmgr
+    app: ethlb
 spec:
   type: ClusterIP
   selector:
-    app: chainmgr
+    app: ethlb
   ports:
     - protocol: TCP
       port: 9988

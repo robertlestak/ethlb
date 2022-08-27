@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/robertlestak/humun-chainmgr/internal/cache"
-	"github.com/robertlestak/humun-chainmgr/internal/metrics"
-	"github.com/robertlestak/humun-chainmgr/internal/proxy"
+	"github.com/robertlestak/ethlb/internal/cache"
+	"github.com/robertlestak/ethlb/internal/metrics"
+	"github.com/robertlestak/ethlb/internal/proxy"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,4 +1,4 @@
-module github.com/robertlestak/humun-chainmgr
+module github.com/robertlestak/ethlb
 
 go 1.17
 

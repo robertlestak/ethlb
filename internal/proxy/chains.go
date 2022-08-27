@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/robertlestak/humun-chainmgr/internal/metrics"
+	"github.com/robertlestak/ethlb/internal/metrics"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-IMAGE=registry.lestak.sh/humun-chainmgr
+IMAGE=registry.lestak.sh/ethlbethlb
 TAG=$GIT_COMMIT
 
 docker build -f Dockerfile \

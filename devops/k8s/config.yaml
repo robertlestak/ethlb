@@ -2,8 +2,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: chainmgr
-  namespace: humun-core-crypto
+  name: ethlb
+  namespace: core-crypto
 data:
   config.json: |
     [
@@ -11,7 +11,7 @@ data:
             "name": "polygon-mumbai",
             "endpoints": [
                 {
-                    "endpoint": "http://bor-mumbai.humun-core-nodes.svc.cluster.local.:8545",
+                    "endpoint": "http://bor-mumbai.core-nodes.svc.cluster.local.:8545",
                     "enabled": false
                 }
             ]
@@ -20,7 +20,7 @@ data:
             "name": "polygon",
             "endpoints": [
                 {
-                    "endpoint": "http://bor-mainnet.humun-core-nodes.svc.cluster.local.:8545",
+                    "endpoint": "http://bor-mainnet.core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]
@@ -29,7 +29,7 @@ data:
             "name": "ethereum",
             "endpoints": [
                 {
-                    "endpoint": "http://geth-mainnet.humun-core-nodes.svc.cluster.local.:8545",
+                    "endpoint": "http://geth-mainnet.core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]
@@ -38,7 +38,7 @@ data:
             "name": "ethereum-ropsten",
             "endpoints": [
                 {
-                    "endpoint": "http://geth-ropsten.humun-core-nodes.svc.cluster.local.:8545",
+                    "endpoint": "http://geth-ropsten.core-nodes.svc.cluster.local.:8545",
                     "enabled": true
                 }
             ]

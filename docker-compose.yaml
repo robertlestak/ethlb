@@ -1,8 +1,8 @@
 version: '3.1'
 
 services:
-  chainmgr:
-    image: chainmgr
+  ethlb:
+    image: ethlb
     build: .
     restart: always
     networks:
@@ -13,7 +13,7 @@ services:
     volumes:
       - $PWD/config.json:/config.json
 
-  chainmgrredis:
+  ethlbredis:
     image: redis
     restart: always
     networks:
