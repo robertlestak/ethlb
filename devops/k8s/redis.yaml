@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ethlb-redis
+  namespace: core-crypto
+  labels:
+    app: ethlb-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ethlb-redis
+  template:
+    metadata:
+      labels:
+        app: ethlb-redis
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        resources:
+          requests:
+            cpu: 500m
+            memory: 500Mi
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+        ports:
+          - containerPort: 6379
+            name: tcp-redis
+        volumeMounts:
+        - name: redis
+          mountPath: /data
+      volumes:
+      - name: redis
+        persistentVolumeClaim:
+          claimName: ethlb-redis
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ethlb-redis
+  namespace: core-crypto
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ethlb-redis
+  namespace: core-crypto
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: ethlb-redis
+  ports:
+    - protocol: TCP
+      name: tcp-redis
+      port: 6379
+      targetPort: 6379

@@ -1,0 +1,38 @@
+[
+    {
+        "name": "polygon-mumbai",
+        "endpoints": [
+            {
+                "endpoint": "http://node:8145",
+                "enabled": false
+            }
+        ]
+    },
+    {
+        "name": "polygon",
+        "endpoints": [
+            {
+                "endpoint": "http://node:8145",
+                "enabled": true
+            }
+        ]
+    },
+    {
+        "name": "ethereum",
+        "endpoints": [
+            {
+                "endpoint": "http://node:8145",
+                "enabled": true
+            }
+        ]
+    },
+    {
+        "name": "ethereum-ropsten",
+        "endpoints": [
+            {
+                "endpoint": "http://node:8145",
+                "enabled": true
+            }
+        ]
+    }
+]

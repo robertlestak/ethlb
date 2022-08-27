@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ethlb
+  namespace: core-crypto
+data:
+  config.json: |
+    [
+        {
+            "name": "polygon-mumbai",
+            "endpoints": [
+                {
+                    "endpoint": "http://bor-mumbai.core-nodes.svc.cluster.local.:8545",
+                    "enabled": false
+                }
+            ]
+        },
+        {
+            "name": "polygon",
+            "endpoints": [
+                {
+                    "endpoint": "http://bor-mainnet.core-nodes.svc.cluster.local.:8545",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "ethereum",
+            "endpoints": [
+                {
+                    "endpoint": "http://geth-mainnet.core-nodes.svc.cluster.local.:8545",
+                    "enabled": true
+                }
+            ]
+        },
+        {
+            "name": "ethereum-ropsten",
+            "endpoints": [
+                {
+                    "endpoint": "http://geth-ropsten.core-nodes.svc.cluster.local.:8545",
+                    "enabled": true
+                }
+            ]
+        }
+    ]

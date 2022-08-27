@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ethlb
+  namespace: core-crypto
+  labels:
+    app: ethlb
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: ethlb
+  template:
+    metadata:
+      labels:
+        app: ethlb
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/metrics'
+        prometheus.io/port: '9090'
+    spec:
+      containers:
+      - name: ethlb
+        image: registry.lestak.sh/ethlbethlb:14
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+          limits:
+            cpu: 4000m
+            memory: 4Gi
+        envFrom:
+          - secretRef:
+              name: ethlb
+        ports:
+          - containerPort: 9988
+            name: http
+            protocol: TCP
+          - containerPort: 9090
+            name: metrics
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+        livenessProbe:
+          tcpSocket:
+            port: 9988
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        readinessProbe:
+          tcpSocket:
+            port: 9988
+          initialDelaySeconds: 5
+          periodSeconds: 3
+      tolerations:
+        - key: arch
+          value: arm64
+          operator: "Equal"
+          effect: "PreferNoSchedule"
+      volumes:
+      - name: config
+        configMap:
+          name: ethlb
+          items:
+          - key: "config.json"
+            path: "config.json"
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ethlb
+  namespace: core-crypto
+  labels:
+    app: ethlb
+spec:
+  type: ClusterIP
+  selector:
+    app: ethlb
+  ports:
+    - protocol: TCP
+      port: 9988
+      name: http
+      targetPort: 9988

@@ -1,0 +1,33 @@
+version: '3.1'
+
+services:
+  ethlb:
+    image: ethlb
+    build: .
+    restart: always
+    networks:
+      - humun
+    env_file: .env
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - $PWD/config.json:/config.json
+
+  ethlbredis:
+    image: redis
+    restart: always
+    networks:
+      - humun
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - redis:/data
+
+networks:
+  web:
+    external: true
+  humun:
+    external: true
+
+volumes:
+  redis:
